@@ -6,10 +6,15 @@ An interactive game for testing your knowledge of L2 (second language) motivatio
 
 ## What's inside
 
-1. **Match the model**: match L2 motivation models with their descriptions and components.
-2. **Sort by era**: sort concepts into the periods of L2 motivation research.
-3. **Memory: who said it?**: pair each researcher with their model or concept.
-4. **★ Bonus: vision training**: put the six phases of the visionary training programme in order.
+- **🃏 Warm-up**: flip cards with a short summary of each model, for anyone who needs a quick refresh.
+- **1 · True or false?**: quick statements with explanations.
+- **2 · Match the model**: match L2 motivation models with their descriptions.
+- **3 · Sort by era**: sort concepts into the periods of L2 motivation research.
+- **4 · Memory: who said it?**: pair each researcher with their idea.
+- **★ Bonus · Vision training**: put the six phases of the visionary training programme in order.
+- **🏆 Results**: team score with a medal.
+
+There is an **Easy** mode (fewer items and extra clues) and a **Hard** mode (all items), plus 💡 hints, points and confetti.
 
 The content is based on Dörnyei, Z., & Ryan, S. (2015). *The Psychology of the Language Learner Revisited*, Chapter 4: Motivation.
 

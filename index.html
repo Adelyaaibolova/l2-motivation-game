@@ -4,242 +4,422 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>L2 Motivation Challenge</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f6f1e7; --ink:#1f2433; --muted:#6b6f7b; --card:#fffdf8; --line:#e3dccd;
     --accent:#2f5d50; --accent2:#c8553d; --gold:#e0a43a; --ok:#2f8f5b; --bad:#c8553d;
-    --sel:#fbe7b5;
+    --sel:#fbe7b5; --okbg:#e3f1e8;
   }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif}
-  header{padding:28px 20px 8px;max-width:900px;margin:auto}
+  header{padding:22px 16px 6px;max-width:920px;margin:auto}
   h1{font-family:Fraunces,serif;font-weight:800;font-size:clamp(28px,6vw,44px);margin:0 0 4px;letter-spacing:-.5px}
-  .sub{color:var(--muted);margin:0}
-  nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-  .tabs{display:flex;gap:6px;max-width:900px;margin:auto;padding:10px 16px;overflow-x:auto}
-  .tab{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font:600 14px Inter;cursor:pointer;white-space:nowrap;color:var(--ink)}
+  .sub{color:var(--muted);margin:0 0 12px}
+  .hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hud input{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font:600 15px Inter;color:var(--ink);width:170px}
+  .score{background:var(--ink);color:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px;transition:transform .2s}
+  .score.bump{transform:scale(1.15)}
+  .mode{display:flex;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+  .mode button{border:0;background:none;padding:7px 13px;font:600 14px Inter;cursor:pointer;color:var(--ink)}
+  .mode button.on{background:var(--accent);color:#fff}
+  nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-top:10px}
+  .tabs{display:flex;gap:6px;max-width:920px;margin:auto;padding:10px 16px;overflow-x:auto;scrollbar-width:none}
+  .tab{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font:600 14px Inter;cursor:pointer;white-space:nowrap;color:var(--ink)}
   .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-  main{max-width:900px;margin:auto;padding:16px 16px 60px}
-  section{display:none} section.on{display:block}
-  h2{font-family:Fraunces,serif;font-size:26px;margin:8px 0 4px}
-  .how{color:var(--muted);margin:0 0 14px}
-  .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;font-weight:600;font-size:14px}
+  .tab .tick{color:var(--ok);margin-left:4px}
+  .tab.on .tick{color:#8fe0b0}
+  main{max-width:920px;margin:auto;padding:14px 16px 70px}
+  section{display:none} section.on{display:block;animation:fade .3s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  h2{font-family:Fraunces,serif;font-size:26px;margin:6px 0 2px}
+  .how{color:var(--muted);margin:0 0 12px}
+  .bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;font-weight:600;font-size:14px}
   .pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
-  button.reset{border:0;background:var(--accent);color:#fff;border-radius:999px;padding:8px 14px;font:600 14px Inter;cursor:pointer}
+  .btns{display:flex;gap:6px}
+  .btn{border:0;background:var(--accent);color:#fff;border-radius:999px;padding:8px 14px;font:600 14px Inter;cursor:pointer}
+  .btn.hint{background:var(--gold);color:var(--ink)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:14px}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:width .4s}
+  .toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;max-width:min(92vw,560px);font-size:14.5px;z-index:20;transition:transform .35s;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+  .toast.show{transform:translate(-50%,0)}
+  .toast b{color:#8fe0b0}
+  .toast.badt b{color:#ffb4a3}
+  .wrong{animation:shake .35s;border-color:var(--bad)!important}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .glow{box-shadow:0 0 0 3px var(--gold);animation:pulse 1s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(224,164,58,.35)}}
+  .win{display:none;margin-top:16px;background:var(--ink);color:#fff;border-radius:14px;padding:14px 16px;font-weight:600}
+  .win.on{display:block;animation:fade .4s}
+  /* warm-up */
+  .flash{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+  .fc{height:190px;perspective:900px;cursor:pointer}
+  .fc .inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .fc.flip .inner{transform:rotateY(180deg)}
+  .fc .face{position:absolute;inset:0;border-radius:16px;padding:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center}
+  .fc .f1{background:var(--card);border:2px solid var(--line);align-items:center;text-align:center}
+  .fc .f1 .em{font-size:40px;line-height:1;margin-bottom:8px}
+  .fc .f1 b{font-family:Fraunces,serif;font-size:18px}
+  .fc .f1 small{color:var(--muted);margin-top:4px}
+  .fc .f2{background:var(--accent);color:#f6f1e7;transform:rotateY(180deg);font-size:14px;line-height:1.4}
+  .fc .f2 em{display:block;font-style:normal;color:var(--gold);font-weight:700;margin-bottom:4px;font-size:13px}
   /* match */
-  .match{display:grid;grid-template-columns:1fr 1.6fr;gap:10px}
+  .match{display:grid;grid-template-columns:1fr 1.5fr;gap:10px}
   .col{display:flex;flex-direction:column;gap:8px}
   .item{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;transition:.15s;font-size:14.5px}
   .item.model{font-weight:600}
   .item.sel{background:var(--sel);border-color:var(--gold)}
-  .item.done{background:#e3f1e8;border-color:var(--ok);cursor:default;opacity:.75}
-  .item.wrong{animation:shake .35s;border-color:var(--bad)}
-  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .item.done{background:var(--okbg);border-color:var(--ok);cursor:default;opacity:.7}
+  /* tf */
+  .tfcard{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center;min-height:170px;display:flex;flex-direction:column;justify-content:center}
+  .tfcard .q{font-family:Fraunces,serif;font-size:clamp(19px,4vw,24px);font-weight:600}
+  .tfcard .n{color:var(--muted);font-size:13px;margin-bottom:8px}
+  .tfbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .tfbtns button{border:0;border-radius:14px;padding:16px;font:700 18px Inter;cursor:pointer;color:#fff}
+  .tfbtns .t{background:var(--ok)} .tfbtns .f{background:var(--bad)}
+  .tfbtns button:disabled{opacity:.4}
+  .explain{margin-top:12px;font-size:15px;min-height:24px}
   /* sort */
-  .pool{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;padding:12px;border:2px dashed var(--line);border-radius:14px;margin-bottom:14px}
+  .pool{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;padding:12px;border:2px dashed var(--line);border-radius:14px;margin-bottom:12px}
   .chip{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:7px 11px;font-size:14px;cursor:pointer}
   .chip.sel{background:var(--sel);border-color:var(--gold)}
-  .chip.wrong{animation:shake .35s;border-color:var(--bad)}
   .eras{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .era{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;min-height:140px;cursor:pointer}
+  .era{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;min-height:130px;cursor:pointer;transition:.15s}
   .era h3{margin:0 0 2px;font-family:Fraunces,serif;font-size:17px}
   .era small{color:var(--muted);display:block;margin-bottom:8px}
-  .era .chip{cursor:default;border-color:var(--ok);background:#e3f1e8;display:block;margin-bottom:6px}
+  .era .clue{font-size:12.5px;color:var(--accent);margin-bottom:8px;font-style:italic}
+  .era .chip{cursor:default;border-color:var(--ok);background:var(--okbg);display:block;margin-bottom:6px}
   .era.target{border-color:var(--gold)}
   /* memory */
-  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-  @media (max-width:640px){.grid{grid-template-columns:repeat(4,1fr)}}
+  .grid{display:grid;gap:8px}
+  .card{aspect-ratio:1/1;perspective:800px;cursor:pointer}
+  .card .inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
+  .card.flip .inner,.card.done .inner,.card.peek .inner{transform:rotateY(180deg)}
+  .card .face{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;font-size:clamp(11px,2.6vw,15px);font-weight:600;line-height:1.2}
+  .card .back{background:var(--accent);color:#f6f1e7;font-family:Fraunces,serif;font-size:clamp(20px,5vw,30px)}
+  .card .front{background:var(--card);border:2px solid var(--line);transform:rotateY(180deg)}
+  .card .front.r{color:var(--accent2)}
+  .card.done .front{background:var(--okbg);border-color:var(--ok)}
+  /* order */
   .order{display:flex;flex-direction:column;gap:8px}
   .step{display:flex;gap:10px;align-items:flex-start}
   .num{flex:0 0 28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;margin-top:8px}
   .slot{min-height:44px;flex:1;border:2px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:14.5px;color:var(--muted)}
-  .slot.full{border-style:solid;border-color:var(--ok);background:#e3f1e8;color:var(--ink)}
-  .card{aspect-ratio:1/1;perspective:800px;cursor:pointer}
-  .inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
-  .card.flip .inner,.card.done .inner{transform:rotateY(180deg)}
-  .face{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;font-size:clamp(11px,2.6vw,15px);font-weight:600;line-height:1.2}
-  .back{background:var(--accent);color:#f6f1e7;font-family:Fraunces,serif;font-size:clamp(20px,5vw,30px)}
-  .front{background:var(--card);border:2px solid var(--line);transform:rotateY(180deg)}
-  .front.r{color:var(--accent2)}
-  .card.done .front{background:#e3f1e8;border-color:var(--ok)}
-  .win{display:none;margin-top:16px;background:var(--ink);color:#fff;border-radius:14px;padding:14px 16px;font-weight:600}
-  .win.on{display:block}
-  .key{margin-top:18px;font-size:13px;color:var(--muted)}
+  .slot.full{border-style:solid;border-color:var(--ok);background:var(--okbg);color:var(--ink)}
+  /* final */
+  .final{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:22px;text-align:center}
+  .final .big{font-family:Fraunces,serif;font-size:56px;font-weight:800;margin:6px 0}
+  .final ul{list-style:none;padding:0;margin:14px 0 0;text-align:left;display:inline-block}
+  .final li{padding:3px 0}
+  canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:30}
   @media (max-width:640px){
     .match{grid-template-columns:1fr}
     .eras{grid-template-columns:1fr}
-    .era{min-height:90px}
+    .era{min-height:80px}
   }
 </style>
 </head>
 <body>
+<canvas id="conf"></canvas>
 <header>
   <h1>L2 Motivation Challenge</h1>
-  <p class="sub">Three games and a bonus round on L2 motivation theory, based on Dörnyei &amp; Ryan (2015), Chapter 4 (pp. 72–105). No login needed: just play!</p>
+  <p class="sub">Games on L2 motivation theory (Dörnyei &amp; Ryan, 2015, Ch. 4). Didn't finish the reading? Start with the warm-up cards!</p>
+  <div class="hud">
+    <input id="team" placeholder="Your team name" maxlength="24" aria-label="Team name">
+    <span class="score" id="score">⭐ 0 pts</span>
+    <div class="mode" role="group" aria-label="Difficulty">
+      <button id="mEasy" class="on">😊 Easy</button><button id="mHard">🔥 Hard</button>
+    </div>
+  </div>
 </header>
-<nav><div class="tabs">
-  <button class="tab on" data-t="t1">1 · Match the model</button>
-  <button class="tab" data-t="t2">2 · Sort by era</button>
-  <button class="tab" data-t="t3">3 · Memory: who said it?</button>
-  <button class="tab" data-t="t4">★ Bonus: vision training</button>
-</div></nav>
+<nav><div class="tabs" id="tabs"></div></nav>
 <main>
 
-<section id="t1" class="on">
-  <h2>Task 1 · Match the model</h2>
-  <p class="how">Tap a model, then tap the description or components that belong to it.</p>
-  <div class="bar"><span class="pill" id="m-score">0 / 12 matched · 0 mistakes</span><button class="reset" onclick="initMatch()">Restart</button></div>
+<section id="t0">
+  <h2>🃏 Warm-up · Cheat cards</h2>
+  <p class="how">Tap a card to flip it. Read them all before you play! (No points here, just a quick refresh.)</p>
+  <div class="bar"><span class="pill" id="w-score">0 / 10 cards flipped</span></div>
+  <div class="flash" id="w-grid"></div>
+  <div class="win" id="w-win"></div>
+</section>
+
+<section id="t1">
+  <h2>✅ Round 1 · True or false?</h2>
+  <p class="how">A quick start: decide whether each statement is true or false.</p>
+  <div class="bar"><span class="pill" id="q-score"></span><div class="btns"><button class="btn" onclick="initTF()">Restart</button></div></div>
+  <div class="progress"><i id="q-prog"></i></div>
+  <div class="tfcard"><div class="n" id="q-n"></div><div class="q" id="q-q"></div><div class="explain" id="q-ex"></div></div>
+  <div class="tfbtns"><button class="t" id="q-t">👍 True</button><button class="f" id="q-f">👎 False</button></div>
+  <div style="text-align:center;margin-top:10px"><button class="btn" id="q-next" style="display:none">Next →</button></div>
+  <div class="win" id="q-win"></div>
+</section>
+
+<section id="t2">
+  <h2>🔗 Round 2 · Match the model</h2>
+  <p class="how">Tap a model, then tap its description. Stuck? Select a model and press 💡.</p>
+  <div class="bar"><span class="pill" id="m-score"></span><div class="btns"><button class="btn hint" onclick="hintMatch()">💡 Hint</button><button class="btn" onclick="initMatch()">Restart</button></div></div>
+  <div class="progress"><i id="m-prog"></i></div>
   <div class="match"><div class="col" id="m-left"></div><div class="col" id="m-right"></div></div>
   <div class="win" id="m-win"></div>
 </section>
 
-<section id="t2">
-  <h2>Task 2 · Sort by era</h2>
+<section id="t3">
+  <h2>🗂️ Round 3 · Sort by era</h2>
   <p class="how">Tap a concept, then tap the period of L2 motivation research it belongs to.</p>
-  <div class="bar"><span class="pill" id="s-score">0 / 16 sorted · 0 mistakes</span><button class="reset" onclick="initSort()">Restart</button></div>
+  <div class="bar"><span class="pill" id="s-score"></span><div class="btns"><button class="btn hint" onclick="hintSort()">💡 Hint</button><button class="btn" onclick="initSort()">Restart</button></div></div>
+  <div class="progress"><i id="s-prog"></i></div>
   <div class="pool" id="s-pool"></div>
   <div class="eras" id="s-eras"></div>
   <div class="win" id="s-win"></div>
 </section>
 
-<section id="t3">
-  <h2>Task 3 · Memory: who said it?</h2>
-  <p class="how">Flip two cards at a time. Pair each <b style="color:var(--accent2)">researcher</b> with their model or concept.</p>
-  <div class="bar"><span class="pill" id="g-score">0 / 12 pairs · 0 moves</span><button class="reset" onclick="initMemory()">Restart</button></div>
+<section id="t4">
+  <h2>🧠 Round 4 · Memory: who said it?</h2>
+  <p class="how">Flip two cards at a time and pair each <b style="color:var(--accent2)">researcher</b> with their idea. 💡 shows all the cards for 2 seconds.</p>
+  <div class="bar"><span class="pill" id="g-score"></span><div class="btns"><button class="btn hint" onclick="hintMemory()">💡 Peek</button><button class="btn" onclick="initMemory()">Restart</button></div></div>
+  <div class="progress"><i id="g-prog"></i></div>
   <div class="grid" id="g-grid"></div>
   <div class="win" id="g-win"></div>
 </section>
 
-<section id="t4">
+<section id="t5">
   <h2>★ Bonus · Vision training</h2>
-  <p class="how">Dörnyei &amp; Kubanyiova (2014) propose a six-phase visionary training programme. Tap the phases in the right order, from first to last.</p>
-  <div class="bar"><span class="pill" id="o-score">0 / 6 placed · 0 mistakes</span><button class="reset" onclick="initOrder()">Restart</button></div>
+  <p class="how">Dörnyei &amp; Kubanyiova (2014) suggest six phases for training learners' vision. Tap them in the right order. Tip: you can't act before you have a vision!</p>
+  <div class="bar"><span class="pill" id="o-score"></span><div class="btns"><button class="btn hint" onclick="hintOrder()">💡 Hint</button><button class="btn" onclick="initOrder()">Restart</button></div></div>
+  <div class="progress"><i id="o-prog"></i></div>
   <div class="pool" id="o-pool"></div>
   <div class="order" id="o-slots"></div>
   <div class="win" id="o-win"></div>
 </section>
 
-</main>
-<script>
-const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
-  document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));
-});
-const flash=el=>{el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong')};
+<section id="t6">
+  <h2>🏆 Results</h2>
+  <div class="final" id="final"></div>
+</section>
 
-/* ---------- Task 1 ---------- */
-const MATCH=[
- ["Gardner’s socio-educational model","Places motivation among antecedent factors, individual differences, learning contexts and outcomes; attitudes toward the L2 community shape success."],
- ["Integrative orientation","Positive feelings toward the L2-speaking community and a wish to identify with it."],
- ["Instrumental orientation","Learning the L2 for concrete benefits, such as a better job or a higher salary."],
- ["Self-determination theory","Three basic needs: autonomy, relatedness and competence; intrinsic vs. extrinsic motivation."],
- ["Attribution theory","The reasons we give for past successes and failures shape how much effort we make in the future."],
- ["Process model of L2 motivation","Motivation moves through a preactional, an actional and a postactional stage."],
- ["Person-in-context relational view","Focus on real persons with agency and identity; learner and context constantly adapt to each other."],
- ["L2 Motivational Self System","Ideal L2 self, Ought-to L2 self and the L2 learning experience."],
- ["Complex dynamic systems perspective","Motivation as an ever-changing, emergent system with nonlinear interactions, timescales and attractor states, shown as ‘moving pictures’ rather than ‘photographic stills’."],
- ["Imagined communities","Groups of people not immediately accessible, with whom learners connect through the power of the imagination."],
- ["Vision","One of the highest-order motivational forces: a vivid mental image of the future L2 self. ‘Where there is a vision, there is a way.’"],
- ["Directed Motivational Currents (DMCs)","A prolonged, intense period of engagement driven by a vision, like an ocean current carrying the learner towards a highly valued goal."]
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const flash=el=>{el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong')};
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+let easy=true, score=0;
+const done={};               // round id -> true
+const roundPts={t1:0,t2:0,t3:0,t4:0,t5:0};
+function addPts(round,n){
+  const before=roundPts[round];roundPts[round]=Math.max(0,before+n);
+  score+=roundPts[round]-before;
+  const s=$('score');s.textContent=`⭐ ${score} pts`;s.classList.remove('bump');void s.offsetWidth;s.classList.add('bump');
+}
+let toastT;
+function toast(html,bad){const t=$('toast');t.innerHTML=html;t.classList.toggle('badt',!!bad);t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),bad?2600:3200)}
+function prog(id,a,b){$(id).style.width=(b?100*a/b:0)+'%'}
+function finish(round,winId,text){
+  done[round]=true;renderTabs();
+  const w=$(winId);w.innerHTML=text+' <button class="btn" style="margin-left:8px" onclick="nextTab()">Next round →</button>';w.classList.add('on');
+  confetti();
+}
+
+/* ---------- tabs ---------- */
+const TABS=[["t0","🃏 Warm-up"],["t1","1 · True/False"],["t2","2 · Match"],["t3","3 · Sort"],["t4","4 · Memory"],["t5","★ Bonus"],["t6","🏆 Results"]];
+let cur="t0";
+function renderTabs(){
+  $('tabs').innerHTML='';
+  TABS.forEach(([id,label])=>{
+    const b=document.createElement('button');b.className='tab'+(id===cur?' on':'');
+    b.innerHTML=label+(done[id]?'<span class="tick">✓</span>':'');
+    b.onclick=()=>show(id);$('tabs').append(b);
+  });
+}
+function show(id){cur=id;renderTabs();document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='t6')renderFinal();if(id==='t4')startPeek();window.scrollTo({top:0,behavior:'smooth'})}
+function nextTab(){const i=TABS.findIndex(t=>t[0]===cur);show(TABS[Math.min(i+1,TABS.length-1)][0])}
+
+/* ---------- difficulty ---------- */
+$('mEasy').onclick=()=>setMode(true);$('mHard').onclick=()=>setMode(false);
+function setMode(e){
+  if(e===easy)return;easy=e;
+  $('mEasy').classList.toggle('on',e);$('mHard').classList.toggle('on',!e);
+  score=0;Object.keys(roundPts).forEach(k=>roundPts[k]=0);Object.keys(done).forEach(k=>{if(k!=='t0')delete done[k]});
+  $('score').textContent='⭐ 0 pts';
+  initAll();renderTabs();toast(e?'😊 <b>Easy mode</b>: fewer items and extra clues.':'🔥 <b>Hard mode</b>: all items, no clues. Good luck!');
+}
+
+/* ---------- warm-up ---------- */
+const FLASH=[
+ ["🍁","Socio-educational model","Gardner · Canada · 1959–1990","Attitudes towards the L2 community matter. <em>Integrative</em> = I like the people &amp; culture. <em>Instrumental</em> = I need it for a job or salary."],
+ ["🧭","Self-determination theory","Deci &amp; Ryan · Noels in L2","Three needs: autonomy, competence, relatedness. <em>Intrinsic</em> = for fun. <em>Extrinsic</em> = for rewards or pressure."],
+ ["🔍","Attribution theory","Weiner · 1980s","How I explain success &amp; failure. “I'm just bad at languages” → I give up. “I didn't practise enough” → I try again."],
+ ["⏱️","Process model","Dörnyei &amp; Ottó · 1998","Motivation changes over time: <em>preactional</em> (choosing) → <em>actional</em> (doing) → <em>postactional</em> (evaluating)."],
+ ["🧑‍🤝‍🧑","Person-in-context view","Ushioda · 2009","Look at real people with their own identity and history. The learner and the context shape each other all the time."],
+ ["🪞","L2 Motivational Self System","Dörnyei · 2005","<em>Ideal L2 self</em> = who I want to be. <em>Ought-to L2 self</em> = what others expect. <em>L2 learning experience</em> = class, teacher, peers."],
+ ["🌊","Complex dynamic systems","Dörnyei, MacIntyre &amp; Henry","Motivation is never still: it goes up and down. A “moving picture”, not a photo."],
+ ["🔭","Vision","Dörnyei &amp; Kubanyiova · 2014","A vivid mental image of your future L2 self. “Where there is a vision, there is a way.”"],
+ ["🌍","Imagined communities","Norton","Feeling you belong to a group of speakers you can't reach yet, through your imagination."],
+ ["🚀","Directed Motivational Currents","Dörnyei, Muir &amp; Ibrahim","A long, intense burst of motivation that carries you towards a big goal, like an ocean current."]
 ];
-let mSel=null,mDone=0,mErr=0;
+const flipped=new Set();
+function initWarm(){
+  flipped.clear();const G=$('w-grid');G.innerHTML='';$('w-win').classList.remove('on');
+  FLASH.forEach(([em,t,who,txt],i)=>{
+    const d=document.createElement('div');d.className='fc';
+    d.innerHTML=`<div class="inner"><div class="face f1"><div class="em">${em}</div><b>${t}</b><small>${who}</small></div><div class="face f2"><em>${t}</em>${txt}</div></div>`;
+    d.onclick=()=>{d.classList.toggle('flip');flipped.add(i);wUpd()};G.append(d);
+  });
+  wUpd();
+}
+function wUpd(){
+  $('w-score').textContent=`${flipped.size} / 10 cards flipped`;
+  if(flipped.size===10&&!done.t0){done.t0=true;renderTabs();const w=$('w-win');w.innerHTML='All cards read: you are ready! <button class="btn" style="margin-left:8px" onclick="nextTab()">Start the game →</button>';w.classList.add('on')}
+}
+
+/* ---------- Round 1: true/false ---------- */
+const TF=[
+ ["Gardner's research on L2 motivation started in Canada.",true,"Yes! It came from the Anglophone–Francophone situation in Canada."],
+ ["Integrative motivation means learning a language to get a better salary.",false,"That's <b>instrumental</b> motivation. Integrative = positive feelings towards the L2 community."],
+ ["Self-determination theory names three needs: autonomy, competence and relatedness.",true,"Correct: control, feeling capable and feeling connected."],
+ ["Attribution theory: if you think you failed because of low ability, you'll probably try harder next time.",false,"The opposite: blaming <b>ability</b> makes people give up. Blaming <b>effort</b> makes them try again."],
+ ["Dörnyei & Ottó's process model has a preactional, an actional and a postactional stage.",true,"Before → during → after the activity."],
+ ["The Ought-to L2 self is the person you dream of becoming.",false,"That's the <b>Ideal</b> L2 self. The Ought-to self is what <b>others</b> expect of you."],
+ ["Ushioda sees context as a fixed background that doesn't change.",false,"No: in her person-in-context view, learner and context <b>constantly influence each other</b>."],
+ ["The complex dynamic systems view sees motivation as something that keeps changing.",true,"Exactly: a “moving picture”, not a still photo."],
+ ["A Directed Motivational Current lasts only a few minutes, like ‘flow’ in one task.",false,"DMCs last <b>much longer</b> (weeks or months) and move you towards a big goal."],
+ ["The L2 Motivational Self System was introduced in 2005.",true,"Yes: Dörnyei introduced it in the 2005 edition of the book."],
+ ["Integrativeness has become less central because English is now a global language.",true,"Right: with Global English there's no single L2 community to integrate into."],
+ ["The ‘L2 learning experience’ is about the learner's future self-image.",false,"It's about the <b>present</b>: teacher, curriculum, peers and experiences of success."]
+];
+let tfQs=[],tfI=0,tfOk=0;
+function initTF(){
+  tfQs=shuffle(TF).slice(0,easy?8:12);tfI=0;tfOk=0;roundPts.t1&&addPts('t1',-roundPts.t1);
+  $('q-win').classList.remove('on');tfShow();
+}
+function tfShow(){
+  $('q-score').textContent=`${tfOk} correct of ${tfI}`;prog('q-prog',tfI,tfQs.length);
+  if(tfI>=tfQs.length){$('q-q').textContent='Round complete!';$('q-n').textContent='';$('q-ex').textContent='';$('q-t').disabled=$('q-f').disabled=true;$('q-next').style.display='none';
+    finish('t1','q-win',`🎉 ${tfOk} / ${tfQs.length} correct!`);return}
+  const [q]=tfQs[tfI];$('q-n').textContent=`Statement ${tfI+1} of ${tfQs.length}`;$('q-q').textContent=q;$('q-ex').innerHTML='';
+  $('q-t').disabled=$('q-f').disabled=false;$('q-next').style.display='none';
+}
+function tfAnswer(v){
+  const [,ans,ex]=tfQs[tfI];$('q-t').disabled=$('q-f').disabled=true;
+  if(v===ans){tfOk++;addPts('t1',10);$('q-ex').innerHTML='✅ <b style="color:var(--ok)">Correct!</b> '+ex}
+  else{$('q-ex').innerHTML='❌ <b style="color:var(--bad)">Not quite.</b> '+ex;flash(document.querySelector('.tfcard'))}
+  tfI++;$('q-next').style.display='inline-block';
+}
+$('q-t').onclick=()=>tfAnswer(true);$('q-f').onclick=()=>tfAnswer(false);$('q-next').onclick=tfShow;
+
+/* ---------- Round 2: match ---------- */
+const MATCH=[
+ ["🍁 Socio-educational model","Gardner's model: attitudes towards the L2 community shape how successful you are.","Gardner placed motivation among other learner factors and outcomes.",1],
+ ["❤️ Integrative orientation","“I love the culture and want to connect with the people.”","Positive feelings towards the L2 community.",1],
+ ["💼 Instrumental orientation","“I need this language for a better job.”","Practical benefits like a career or salary.",1],
+ ["🧭 Self-determination theory","Autonomy, competence, relatedness; intrinsic vs. extrinsic motivation.","Deci & Ryan; applied to L2 by Kim Noels.",1],
+ ["🔍 Attribution theory","How you explain past success or failure decides whether you try again.","Weiner's theory; Ushioda studied it with Irish learners of French.",1],
+ ["⏱️ Process model","Preactional → actional → postactional stages.","Dörnyei & Ottó (1998): motivation changes over time.",1],
+ ["🧑‍🤝‍🧑 Person-in-context view","Real people with agency; learner and context shape each other.","Ushioda (2009) argued against linear models.",0],
+ ["🪞 L2 Motivational Self System","Ideal L2 self, Ought-to L2 self, L2 learning experience.","Dörnyei (2005), based on possible selves.",1],
+ ["🌊 Complex dynamic systems","Motivation as a ‘moving picture’ that keeps changing, not a still photo.","Part of the ‘dynamic turn’ in applied linguistics.",0],
+ ["🚀 Directed Motivational Currents","A long, intense surge of motivation towards a highly valued goal, like an ocean current.","Different from flow: it lasts longer and is goal-directed.",0]
+];
+let mSet=[],mSel=null,mDone=0,mErr=0;
 function initMatch(){
-  mSel=null;mDone=0;mErr=0;
-  const L=document.getElementById('m-left'),R=document.getElementById('m-right');
-  L.innerHTML='';R.innerHTML='';
-  document.getElementById('m-win').classList.remove('on');
-  shuffle(MATCH.map((p,i)=>i)).forEach(i=>L.append(mk('model',MATCH[i][0],i)));
-  shuffle(MATCH.map((p,i)=>i)).forEach(i=>R.append(mk('desc',MATCH[i][1],i)));
+  mSet=easy?MATCH.filter(m=>m[3]).slice(0,6):MATCH;
+  mSel=null;mDone=0;mErr=0;addPts('t2',-roundPts.t2);
+  const L=$('m-left'),R=$('m-right');L.innerHTML='';R.innerHTML='';$('m-win').classList.remove('on');
+  shuffle(mSet.map((p,i)=>i)).forEach(i=>L.append(mkM('model',mSet[i][0],i)));
+  shuffle(mSet.map((p,i)=>i)).forEach(i=>R.append(mkM('desc',mSet[i][1],i)));
   mUpd();
 }
-function mk(side,text,i){
+function mkM(side,text,i){
   const d=document.createElement('div');d.className='item '+side;d.textContent=text;d.dataset.i=i;
   d.onclick=()=>{
     if(d.classList.contains('done'))return;
-    if(!mSel||mSel.classList.contains(side)){
-      if(mSel)mSel.classList.remove('sel');
-      mSel=d;d.classList.add('sel');return;
-    }
+    document.querySelectorAll('.glow').forEach(x=>x.classList.remove('glow'));
+    if(!mSel||mSel.classList.contains(side)){if(mSel)mSel.classList.remove('sel');mSel=d;d.classList.add('sel');return}
     if(mSel.dataset.i===d.dataset.i){
-      [mSel,d].forEach(x=>{x.classList.remove('sel');x.classList.add('done')});mDone++;
-    }else{mErr++;flash(d);flash(mSel);mSel.classList.remove('sel')}
+      [mSel,d].forEach(x=>{x.classList.remove('sel');x.classList.add('done')});mDone++;addPts('t2',10);
+      toast(`✅ <b>${mSet[i][0]}</b>: ${mSet[i][2]}`);
+      if(mDone===mSet.length)finish('t2','m-win',`🎉 All ${mSet.length} matched with ${plural(mErr,'mistake')}!`);
+    }else{mErr++;addPts('t2',-2);flash(d);flash(mSel);mSel.classList.remove('sel');toast('❌ <b>Not a match.</b> Try another one!',1)}
     mSel=null;mUpd();
   };
   return d;
 }
-function mUpd(){
-  document.getElementById('m-score').textContent=`${mDone} / 12 matched · ${mErr} mistake${mErr===1?'':'s'}`;
-  if(mDone===12){const w=document.getElementById('m-win');w.textContent=`Well done! All 12 matched with ${mErr} mistake${mErr===1?'':'s'}.`;w.classList.add('on')}
+function hintMatch(){
+  if(!mSel){toast('💡 First tap a model or a description, then press Hint.',1);return}
+  const other=mSel.classList.contains('model')?'desc':'model';
+  const t=document.querySelector(`.item.${other}[data-i="${mSel.dataset.i}"]`);t.classList.add('glow');addPts('t2',-3);
 }
+function mUpd(){$('m-score').textContent=`${mDone} / ${mSet.length} matched · ${plural(mErr,'mistake')}`;prog('m-prog',mDone,mSet.length)}
 
-/* ---------- Task 2 ---------- */
+/* ---------- Round 3: sort ---------- */
 const ERAS=[
- ["Social psychological period","1959–1990"],
- ["Cognitive-situated period","1990s"],
- ["Process-oriented / socio-dynamic period","turn of the century –"]
+ ["🍁 Social psychological period","1959–1990","Canada, attitudes, questionnaires"],
+ ["🧠 Cognitive-situated period","1990s","Ideas from educational psychology, the classroom"],
+ ["🌊 Socio-dynamic period","2000s →","Change over time, the self, vision"]
 ];
 const SORT=[
- ["Gardner’s socio-educational model",0],["Integrative & instrumental orientation",0],["Attitude/Motivation Test Battery (AMTB)",0],
- ["Clément’s linguistic self-confidence",0],["Schumann’s acculturation theory",0],
- ["Self-determination theory in L2 (Noels)",1],["Attribution theory",1],["Crookes & Schmidt: ‘reopening the research agenda’",1],
- ["Focus on the classroom: teacher, curriculum, group",1],
- ["Dörnyei & Ottó’s process model",2],["Ushioda’s person-in-context relational view",2],["L2 Motivational Self System",2],
- ["Complex dynamic systems (the ‘dynamic turn’)",2],["Directed Motivational Currents",2],["Vision & imagery training",2],["Norton’s imagined communities",2]
+ ["Gardner's socio-educational model",0,1],["Integrative & instrumental orientation",0,1],["Attitude/Motivation Test Battery (AMTB)",0,0],
+ ["Clément's linguistic self-confidence",0,0],["Schumann's acculturation theory",0,0],
+ ["Self-determination theory in L2 (Noels)",1,1],["Attribution theory",1,1],["Crookes & Schmidt: ‘reopening the research agenda’",1,0],
+ ["Focus on the classroom: teacher, curriculum, group",1,1],
+ ["Dörnyei & Ottó's process model",2,1],["Ushioda's person-in-context view",2,0],["L2 Motivational Self System",2,1],
+ ["Complex dynamic systems",2,0],["Directed Motivational Currents",2,1],["Norton's imagined communities",2,0]
 ];
-let sSel=null,sDone=0,sErr=0;
+let sSel=null,sDone=0,sErr=0,sTotal=0;
 function initSort(){
-  sSel=null;sDone=0;sErr=0;
-  document.getElementById('s-win').classList.remove('on');
-  const P=document.getElementById('s-pool');P.innerHTML='';
-  shuffle(SORT).forEach(([t,e])=>{
+  const items=easy?SORT.filter(s=>s[2]):SORT;sTotal=items.length;
+  sSel=null;sDone=0;sErr=0;addPts('t3',-roundPts.t3);$('s-win').classList.remove('on');
+  const P=$('s-pool');P.innerHTML='';
+  shuffle(items).forEach(([t,e])=>{
     const c=document.createElement('div');c.className='chip';c.textContent=t;c.dataset.e=e;
-    c.onclick=()=>{if(sSel)sSel.classList.remove('sel');sSel=(sSel===c?null:c);if(sSel)c.classList.add('sel');hint()};
+    c.onclick=()=>{document.querySelectorAll('.glow').forEach(x=>x.classList.remove('glow'));if(sSel)sSel.classList.remove('sel');sSel=(sSel===c?null:c);if(sSel)c.classList.add('sel');hl()};
     P.append(c);
   });
-  const E=document.getElementById('s-eras');E.innerHTML='';
-  ERAS.forEach(([n,d],i)=>{
-    const b=document.createElement('div');b.className='era';b.innerHTML=`<h3>${n}</h3><small>${d}</small>`;
+  const E=$('s-eras');E.innerHTML='';
+  ERAS.forEach(([n,d,clue],i)=>{
+    const b=document.createElement('div');b.className='era';b.dataset.i=i;
+    b.innerHTML=`<h3>${n}</h3><small>${d}</small>${easy?`<div class="clue">Clue: ${clue}</div>`:''}`;
     b.onclick=()=>{
-      if(!sSel)return;
-      if(+sSel.dataset.e===i){
-        sSel.classList.remove('sel');sSel.onclick=null;b.append(sSel);sDone++;
-      }else{sErr++;flash(sSel);sSel.classList.remove('sel')}
-      sSel=null;hint();sUpd();
+      if(!sSel)return;document.querySelectorAll('.glow').forEach(x=>x.classList.remove('glow'));
+      if(+sSel.dataset.e===i){sSel.classList.remove('sel');sSel.onclick=null;b.append(sSel);sDone++;addPts('t3',10);
+        if(sDone===sTotal)finish('t3','s-win',`🎉 Everything sorted with ${plural(sErr,'mistake')}! Dörnyei & Ryan now see the process-oriented period as the start of the socio-dynamic one.`)}
+      else{sErr++;addPts('t3',-2);flash(sSel);flash(b);sSel.classList.remove('sel');toast('❌ <b>Wrong period.</b> Think: when did this idea appear?',1)}
+      sSel=null;hl();sUpd();
     };
     E.append(b);
   });
   sUpd();
 }
-function hint(){document.querySelectorAll('.era').forEach(e=>e.classList.toggle('target',!!sSel))}
-function sUpd(){
-  document.getElementById('s-score').textContent=`${sDone} / 16 sorted · ${sErr} mistake${sErr===1?'':'s'}`;
-  if(sDone===16){const w=document.getElementById('s-win');w.textContent=`Great! Everything is in the right era (${sErr} mistake${sErr===1?'':'s'}). Remember: Dörnyei & Ryan now see the process-oriented period as the start of the socio-dynamic one.`;w.classList.add('on')}
+function hl(){document.querySelectorAll('.era').forEach(e=>e.classList.toggle('target',!!sSel))}
+function hintSort(){
+  if(!sSel){toast('💡 First tap a concept, then press Hint.',1);return}
+  document.querySelector(`.era[data-i="${sSel.dataset.e}"]`).classList.add('glow');addPts('t3',-3);
 }
+function sUpd(){$('s-score').textContent=`${sDone} / ${sTotal} sorted · ${plural(sErr,'mistake')}`;prog('s-prog',sDone,sTotal)}
 
-/* ---------- Task 3 ---------- */
+/* ---------- Round 4: memory ---------- */
 const PAIRS=[
- ["Gardner & Lambert","Integrative / instrumental orientation"],
- ["Clément","Linguistic self-confidence"],
- ["Deci & Ryan","Self-determination theory"],
- ["Weiner","Attribution theory"],
- ["Dörnyei & Ottó","Process model"],
- ["Ushioda","Person-in-context relational view"],
- ["Dörnyei","L2 Motivational Self System"],
- ["Markus & Nurius","Possible selves"],
- ["Norton","Imagined communities"],
- ["Dörnyei & Kubanyiova","Vision &amp; visionary training"],
- ["Dörnyei, Muir & Ibrahim","Directed Motivational Currents"],
- ["Higgins","Self-discrepancy theory"]
+ ["Gardner & Lambert","Integrative / instrumental",1],
+ ["Deci & Ryan","Self-determination theory",1],
+ ["Weiner","Attribution theory",1],
+ ["Dörnyei & Ottó","Process model",1],
+ ["Ushioda","Person-in-context view",1],
+ ["Dörnyei","L2 Motivational Self System",1],
+ ["Clément","Linguistic self-confidence",0],
+ ["Markus & Nurius","Possible selves",0],
+ ["Norton","Imagined communities",0],
+ ["Dörnyei, Muir & Ibrahim","Directed Motivational Currents",0]
 ];
-let open=[],gDone=0,moves=0,lock=false;
+let gSet=[],open=[],gDone=0,moves=0,lock=false;
 function initMemory(){
-  open=[];gDone=0;moves=0;lock=false;
-  document.getElementById('g-win').classList.remove('on');
-  const G=document.getElementById('g-grid');G.innerHTML='';
-  const cards=shuffle(PAIRS.flatMap((p,i)=>[{t:p[0],i,r:1},{t:p[1],i,r:0}]));
-  cards.forEach(c=>{
+  gSet=easy?PAIRS.filter(p=>p[2]):PAIRS;open=[];gDone=0;moves=0;lock=false;addPts('t4',-roundPts.t4);
+  $('g-win').classList.remove('on');
+  const G=$('g-grid');G.innerHTML='';G.style.gridTemplateColumns=`repeat(${window.innerWidth<640?4:(easy?4:5)},1fr)`;
+  shuffle(gSet.flatMap((p,i)=>[{t:p[0],i,r:1},{t:p[1],i,r:0}])).forEach(c=>{
     const d=document.createElement('div');d.className='card';d.dataset.i=c.i;
     d.innerHTML=`<div class="inner"><div class="face back">?</div><div class="face front ${c.r?'r':''}">${c.t}</div></div>`;
     d.onclick=()=>{
@@ -247,52 +427,84 @@ function initMemory(){
       d.classList.add('flip');open.push(d);
       if(open.length===2){
         moves++;const [a,b]=open;
-        if(a.dataset.i===b.dataset.i){a.classList.add('done');b.classList.add('done');gDone++;open=[];gUpd()}
-        else{lock=true;setTimeout(()=>{a.classList.remove('flip');b.classList.remove('flip');open=[];lock=false},1000);gUpd()}
+        if(a.dataset.i===b.dataset.i){a.classList.add('done');b.classList.add('done');gDone++;open=[];addPts('t4',10);toast(`✅ <b>${gSet[+a.dataset.i][0]}</b> → ${gSet[+a.dataset.i][1]}`);
+          if(gDone===gSet.length)finish('t4','g-win',`🎉 All ${gSet.length} pairs in ${moves} moves!`)}
+        else{lock=true;setTimeout(()=>{a.classList.remove('flip');b.classList.remove('flip');open=[];lock=false},1000)}
+        gUpd();
       }
     };
     G.append(d);
   });
   gUpd();
+  gPeeked=false;if(cur==='t4')startPeek();
 }
-function gUpd(){
-  document.getElementById('g-score').textContent=`${gDone} / 12 pairs · ${moves} moves`;
-  if(gDone===12){const w=document.getElementById('g-win');w.textContent=`You found all 12 pairs in ${moves} moves!`;w.classList.add('on')}
+let gPeeked=false;
+function startPeek(){if(easy&&!gPeeked){gPeeked=true;setTimeout(()=>{peek(2500,false);toast('👀 <b>Memorise!</b> The cards are shown for a few seconds…')},400)}}
+function peek(ms,cost){
+  if(lock)return;lock=true;if(cost)addPts('t4',-3);
+  const cs=document.querySelectorAll('.card:not(.done):not(.flip)');cs.forEach(c=>c.classList.add('peek'));
+  setTimeout(()=>{cs.forEach(c=>c.classList.remove('peek'));lock=false},ms);
 }
+function hintMemory(){peek(2000,true)}
+function gUpd(){$('g-score').textContent=`${gDone} / ${gSet.length} pairs · ${moves} moves`;prog('g-prog',gDone,gSet.length)}
 
-/* ---------- Bonus ---------- */
+/* ---------- Bonus: order ---------- */
 const STEPS=[
- ["Creating the vision","help learners construct a desired future L2 self"],
- ["Strengthening the vision","imagery enhancement: make the image vivid and detailed"],
- ["Substantiating the vision","make the future self plausible and realistic"],
- ["Transforming the vision into action","develop an action plan, because vision without action is daydream"],
- ["Keeping the vision alive","activate the vision regularly"],
- ["Counterbalancing the vision","consider failure: offset it with a feared self"]
+ ["Creating the vision","help learners imagine who they could become as L2 users"],
+ ["Strengthening the vision","make the image more vivid and detailed"],
+ ["Substantiating the vision","make it realistic and plausible"],
+ ["Transforming the vision into action","make an action plan, because vision without action is a daydream"],
+ ["Keeping the vision alive","remind yourself of it regularly"],
+ ["Counterbalancing the vision","think about what happens if you fail (a feared self)"]
 ];
 let oNext=0,oErr=0;
 function initOrder(){
-  oNext=0;oErr=0;
-  document.getElementById('o-win').classList.remove('on');
-  const S=document.getElementById('o-slots');S.innerHTML='';
-  STEPS.forEach((st,i)=>{const r=document.createElement('div');r.className='step';r.innerHTML=`<div class="num">${i+1}</div><div class="slot" id="slot${i}">?</div>`;S.append(r)});
-  const P=document.getElementById('o-pool');P.innerHTML='';
+  oNext=0;oErr=0;addPts('t5',-roundPts.t5);$('o-win').classList.remove('on');
+  const S=$('o-slots');S.innerHTML='';
+  STEPS.forEach((st,i)=>{const r=document.createElement('div');r.className='step';r.innerHTML=`<div class="num">${i+1}</div><div class="slot" id="slot${i}">${easy?'<i>'+st[1]+'</i>':'?'}</div>`;S.append(r)});
+  const P=$('o-pool');P.innerHTML='';
   shuffle(STEPS.map((x,i)=>i)).forEach(i=>{
-    const c=document.createElement('div');c.className='chip';c.textContent=STEPS[i][0];
+    const c=document.createElement('div');c.className='chip';c.textContent=STEPS[i][0];c.dataset.i=i;
     c.onclick=()=>{
-      if(i===oNext){const sl=document.getElementById('slot'+i);sl.innerHTML=`<b>${STEPS[i][0]}</b>: ${STEPS[i][1]}`;sl.classList.add('full');c.remove();oNext++}
-      else{oErr++;flash(c)}
+      document.querySelectorAll('.glow').forEach(x=>x.classList.remove('glow'));
+      if(i===oNext){const sl=$('slot'+i);sl.innerHTML=`<b>${STEPS[i][0]}</b>: ${STEPS[i][1]}`;sl.classList.add('full');c.remove();oNext++;addPts('t5',10);
+        if(oNext===6)finish('t5','o-win',`🎉 Programme complete with ${plural(oErr,'mistake')}! (The authors say it isn't strictly step-by-step in real life.)`)}
+      else{oErr++;addPts('t5',-2);flash(c);toast('❌ <b>Not this one yet.</b> Which phase comes next?',1)}
       oUpd();
     };
     P.append(c);
   });
   oUpd();
 }
-function oUpd(){
-  document.getElementById('o-score').textContent=`${oNext} / 6 placed · ${oErr} mistake${oErr===1?'':'s'}`;
-  if(oNext===6){const w=document.getElementById('o-win');w.textContent=`Perfect! The programme is complete (${oErr} mistake${oErr===1?'':'s'}). Note: the authors say it is not a strictly linear, step-by-step programme.`;w.classList.add('on')}
+function hintOrder(){if(oNext>=6)return;document.querySelector(`#o-pool .chip[data-i="${oNext}"]`).classList.add('glow');addPts('t5',-3)}
+function oUpd(){$('o-score').textContent=`${oNext} / 6 placed · ${plural(oErr,'mistake')}`;prog('o-prog',oNext,6)}
+
+/* ---------- results ---------- */
+function renderFinal(){
+  const team=$('team').value.trim()||'Your team';
+  const names={t1:'True/False',t2:'Match',t3:'Sort',t4:'Memory',t5:'Bonus'};
+  const nDone=Object.keys(names).filter(k=>done[k]).length;
+  const max=10*(tfQs.length+mSet.length+sTotal+gSet.length+6),pc=score/max;
+  const medal=nDone===5?(pc>=.85?'🥇':pc>=.65?'🥈':'🥉'):'⏳';
+  $('final').innerHTML=`<div style="font-size:48px">${medal}</div><div style="font-weight:700;font-size:20px">${team.replace(/[<>&]/g,'')}</div>
+   <div class="big">${score} pts</div><div style="color:var(--muted)">${easy?'😊 Easy':'🔥 Hard'} mode · ${nDone} of 5 rounds finished</div>
+   <ul>${Object.entries(names).map(([k,n])=>`<li>${done[k]?'✅':'⬜'} ${n}: <b>${roundPts[k]}</b> pts</li>`).join('')}</ul>
+   <p style="color:var(--muted);font-size:14px">Show this screen to your teacher! 📸</p>`;
+  if(nDone===5)confetti();
 }
 
-initMatch();initSort();initMemory();initOrder();
+/* ---------- confetti ---------- */
+function confetti(){
+  const c=$('conf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cols=['#2f5d50','#c8553d','#e0a43a','#2f8f5b','#1f2433'];
+  const ps=Array.from({length:120},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*4,vy:2+Math.random()*4,r:Math.random()*6.28,s:5+Math.random()*6,c:cols[Math.floor(Math.random()*5)]}));
+  let f=0;(function step(){x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});
+    if(++f<180)requestAnimationFrame(step);else x.clearRect(0,0,c.width,c.height)})();
+}
+
+function initAll(){initTF();initMatch();initSort();initMemory();initOrder()}
+initWarm();initAll();show("t0");
 </script>
 </body>
 </html>
