@@ -124,9 +124,9 @@
 <canvas id="conf"></canvas>
 <header>
   <h1>L2 Motivation Challenge</h1>
-  <p class="sub">Games on L2 motivation theory (Dörnyei &amp; Ryan, 2015, Ch. 4). Didn't finish the reading? Start with the warm-up cards!</p>
+  <p class="sub">Games on L2 motivation theory (Dörnyei &amp; Ryan, 2015, Ch. 4). Type your name, play all the rounds and show your result at the end. Didn't finish the reading? Start with the warm-up cards!</p>
   <div class="hud">
-    <input id="team" placeholder="Your team name" maxlength="24" aria-label="Team name">
+    <input id="team" placeholder="✍️ Your name" maxlength="30" aria-label="Your name">
     <span class="score" id="score">⭐ 0 pts</span>
     <div class="mode" role="group" aria-label="Difficulty">
       <button id="mEasy" class="on">😊 Easy</button><button id="mHard">🔥 Hard</button>
@@ -210,16 +210,18 @@ const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 let easy=true, score=0;
 const done={};               // round id -> true
 const roundPts={t1:0,t2:0,t3:0,t4:0,t5:0};
+const locked=new Set();
 function addPts(round,n){
+  if(locked.has(round))return;
   const before=roundPts[round];roundPts[round]=Math.max(0,before+n);
   score+=roundPts[round]-before;
-  const s=$('score');s.textContent=`⭐ ${score} pts`;s.classList.remove('bump');void s.offsetWidth;s.classList.add('bump');
+  save();const s=$('score');s.textContent=`⭐ ${score} pts`;s.classList.remove('bump');void s.offsetWidth;s.classList.add('bump');
 }
 let toastT;
 function toast(html,bad){const t=$('toast');t.innerHTML=html;t.classList.toggle('badt',!!bad);t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),bad?2600:3200)}
 function prog(id,a,b){$(id).style.width=(b?100*a/b:0)+'%'}
 function finish(round,winId,text){
-  done[round]=true;renderTabs();
+  done[round]=true;if(Object.keys(roundPts).every(k=>done[k])&&!endT)endT=Date.now();save();renderTabs();
   const w=$(winId);w.innerHTML=text+' <button class="btn" style="margin-left:8px" onclick="nextTab()">Next round →</button>';w.classList.add('on');
   confetti();
 }
@@ -293,7 +295,7 @@ const TF=[
 ];
 let tfQs=[],tfI=0,tfOk=0;
 function initTF(){
-  tfQs=shuffle(TF).slice(0,easy?8:12);tfI=0;tfOk=0;roundPts.t1&&addPts('t1',-roundPts.t1);
+  delete done.t1;locked.delete('t1');tfQs=shuffle(TF).slice(0,easy?8:12);tfI=0;tfOk=0;roundPts.t1&&addPts('t1',-roundPts.t1);
   $('q-win').classList.remove('on');tfShow();
 }
 function tfShow(){
@@ -327,7 +329,7 @@ const MATCH=[
 let mSet=[],mSel=null,mDone=0,mErr=0;
 function initMatch(){
   mSet=easy?MATCH.filter(m=>m[3]).slice(0,6):MATCH;
-  mSel=null;mDone=0;mErr=0;addPts('t2',-roundPts.t2);
+  delete done.t2;locked.delete('t2');mSel=null;mDone=0;mErr=0;addPts('t2',-roundPts.t2);
   const L=$('m-left'),R=$('m-right');L.innerHTML='';R.innerHTML='';$('m-win').classList.remove('on');
   shuffle(mSet.map((p,i)=>i)).forEach(i=>L.append(mkM('model',mSet[i][0],i)));
   shuffle(mSet.map((p,i)=>i)).forEach(i=>R.append(mkM('desc',mSet[i][1],i)));
@@ -372,7 +374,7 @@ const SORT=[
 let sSel=null,sDone=0,sErr=0,sTotal=0;
 function initSort(){
   const items=easy?SORT.filter(s=>s[2]):SORT;sTotal=items.length;
-  sSel=null;sDone=0;sErr=0;addPts('t3',-roundPts.t3);$('s-win').classList.remove('on');
+  delete done.t3;locked.delete('t3');sSel=null;sDone=0;sErr=0;addPts('t3',-roundPts.t3);$('s-win').classList.remove('on');
   const P=$('s-pool');P.innerHTML='';
   shuffle(items).forEach(([t,e])=>{
     const c=document.createElement('div');c.className='chip';c.textContent=t;c.dataset.e=e;
@@ -416,7 +418,7 @@ const PAIRS=[
 ];
 let gSet=[],open=[],gDone=0,moves=0,lock=false;
 function initMemory(){
-  gSet=easy?PAIRS.filter(p=>p[2]):PAIRS;open=[];gDone=0;moves=0;lock=false;addPts('t4',-roundPts.t4);
+  gSet=easy?PAIRS.filter(p=>p[2]):PAIRS;delete done.t4;locked.delete('t4');open=[];gDone=0;moves=0;lock=false;addPts('t4',-roundPts.t4);
   $('g-win').classList.remove('on');
   const G=$('g-grid');G.innerHTML='';G.style.gridTemplateColumns=`repeat(${window.innerWidth<640?4:(easy?4:5)},1fr)`;
   shuffle(gSet.flatMap((p,i)=>[{t:p[0],i,r:1},{t:p[1],i,r:0}])).forEach(c=>{
@@ -459,7 +461,7 @@ const STEPS=[
 ];
 let oNext=0,oErr=0;
 function initOrder(){
-  oNext=0;oErr=0;addPts('t5',-roundPts.t5);$('o-win').classList.remove('on');
+  delete done.t5;locked.delete('t5');oNext=0;oErr=0;addPts('t5',-roundPts.t5);$('o-win').classList.remove('on');
   const S=$('o-slots');S.innerHTML='';
   STEPS.forEach((st,i)=>{const r=document.createElement('div');r.className='step';r.innerHTML=`<div class="num">${i+1}</div><div class="slot" id="slot${i}">${easy?'<i>'+st[1]+'</i>':'?'}</div>`;S.append(r)});
   const P=$('o-pool');P.innerHTML='';
@@ -481,16 +483,54 @@ function oUpd(){$('o-score').textContent=`${oNext} / 6 placed · ${plural(oErr,'
 
 /* ---------- results ---------- */
 function renderFinal(){
-  const team=$('team').value.trim()||'Your team';
+  const name=$('team').value.trim();
   const names={t1:'True/False',t2:'Match',t3:'Sort',t4:'Memory',t5:'Bonus'};
   const nDone=Object.keys(names).filter(k=>done[k]).length;
   const max=10*(tfQs.length+mSet.length+sTotal+gSet.length+6),pc=score/max;
   const medal=nDone===5?(pc>=.85?'🥇':pc>=.65?'🥈':'🥉'):'⏳';
-  $('final').innerHTML=`<div style="font-size:48px">${medal}</div><div style="font-weight:700;font-size:20px">${team.replace(/[<>&]/g,'')}</div>
-   <div class="big">${score} pts</div><div style="color:var(--muted)">${easy?'😊 Easy':'🔥 Hard'} mode · ${nDone} of 5 rounds finished</div>
+  const mins=startT?Math.max(1,Math.round(((endT||Date.now())-startT)/60000)):0;
+  const date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const safe=t=>t.replace(/[<>&"]/g,'');
+  $('final').innerHTML=(name?'':`<p style="background:var(--sel);border-radius:12px;padding:10px;font-weight:600">✍️ Type your name in the box at the top so your result shows it!</p>`)+
+   `<div style="font-size:52px">${medal}</div>
+   <div style="color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1px">${nDone===5?'Certificate of completion':'Result so far'}</div>
+   <div style="font-family:Fraunces,serif;font-weight:800;font-size:26px;margin-top:4px">${safe(name)||'Player'}</div>
+   <div class="big">${score} pts</div>
+   <div style="color:var(--muted)">${easy?'😊 Easy':'🔥 Hard'} mode · ${nDone} of 5 rounds · ${Math.round(pc*100)}% · ⏱️ ${mins} min</div>
    <ul>${Object.entries(names).map(([k,n])=>`<li>${done[k]?'✅':'⬜'} ${n}: <b>${roundPts[k]}</b> pts</li>`).join('')}</ul>
-   <p style="color:var(--muted);font-size:14px">Show this screen to your teacher! 📸</p>`;
+   <div style="color:var(--muted);font-size:13px;margin-top:6px">L2 Motivation Challenge · ${date}</div>
+   <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+     <button class="btn" onclick="copyResult()">📋 Copy my result</button>
+     <button class="btn hint" onclick="playAgain()">🔄 Play again</button>
+   </div>
+   <p style="color:var(--muted);font-size:14px">Take a screenshot 📸 or copy your result and send it to the group chat!</p>`;
   if(nDone===5)confetti();
+}
+function copyResult(){
+  const n=Object.keys(roundPts).filter(k=>done[k]).length;
+  const txt=`${$('team').value.trim()||'Player'}: ${score} pts in the L2 Motivation Challenge (${easy?'Easy':'Hard'} mode, ${n}/5 rounds)`;
+  navigator.clipboard.writeText(txt).then(()=>toast('📋 <b>Copied!</b> Paste it into the group chat.'),()=>toast('Couldn\'t copy. Take a screenshot instead 📸',1));
+}
+function playAgain(){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}
+
+/* ---------- saving progress on this device ---------- */
+const KEY='l2mc-v2';let startT=0,endT=0,restoring=false;
+function save(){if(restoring)return;try{localStorage.setItem(KEY,JSON.stringify({name:$('team').value,easy,done,roundPts,startT,endT}))}catch(e){}}
+$('team').addEventListener('input',()=>{if(!startT)startT=Date.now();save()});
+document.addEventListener('click',()=>{if(!startT){startT=Date.now();save()}},{once:true});
+function restore(){
+  let st;try{st=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+  if(!st)return;
+  $('team').value=st.name||'';startT=st.startT||0;endT=st.endT||0;
+  if(st.easy===false){easy=false;$('mEasy').classList.remove('on');$('mHard').classList.add('on');initAll()}
+  if(st.done&&st.done.t0){done.t0=true}
+  const wins={t1:'q-win',t2:'m-win',t3:'s-win',t4:'g-win',t5:'o-win'};
+  Object.keys(wins).forEach(k=>{if(st.done&&st.done[k]){
+    done[k]=true;roundPts[k]=st.roundPts[k]||0;locked.add(k);
+    const w=$(wins[k]);w.innerHTML=`✅ You already finished this round: <b>${roundPts[k]} pts</b>. Press Restart to play it again.`;w.classList.add('on');
+  }});
+  score=Object.values(roundPts).reduce((a,b)=>a+b,0);$('score').textContent=`⭐ ${score} pts`;
+  if(Object.keys(done).length>1)toast('👋 <b>Welcome back!</b> Your progress was saved on this device.');
 }
 
 /* ---------- confetti ---------- */
@@ -504,7 +544,7 @@ function confetti(){
 }
 
 function initAll(){initTF();initMatch();initSort();initMemory();initOrder()}
-initWarm();initAll();show("t0");
+restoring=true;initWarm();initAll();restore();restoring=false;save();show("t0");
 </script>
 </body>
 </html>

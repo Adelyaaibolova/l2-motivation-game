@@ -12,7 +12,7 @@ An interactive game for testing your knowledge of L2 (second language) motivatio
 - **3 · Sort by era**: sort concepts into the periods of L2 motivation research.
 - **4 · Memory: who said it?**: pair each researcher with their idea.
 - **★ Bonus · Vision training**: put the six phases of the visionary training programme in order.
-- **🏆 Results**: team score with a medal.
+- **🏆 Results**: each player gets a personal result (name, points, medal, time) to screenshot or copy. Progress is saved on the device, so a page refresh does not lose it.
 
 There is an **Easy** mode (fewer items and extra clues) and a **Hard** mode (all items), plus 💡 hints, points and confetti.
 
